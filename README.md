@@ -1,58 +1,47 @@
 import pandas as pd
 import matplotlib.pyplot as plt
+from google.colab import files
 
-# Creamos una lista vacía para almacenar los datos
-lista_datos = []
+# Pedir al usuario que cargue el archivo Excel
+print("Por favor, carga tu archivo Excel:")
+uploaded = files.upload()
 
-# Definimos la función para ingresar los datos
-def ingresar_datos():
-    while True:
-        try:
-            dia = int(input("Ingrese el día de la medición: "))
-            abundancia = float(input("Ingrese la abundancia de cianobacterias: "))
-            biomasa = float(input("Ingrese la biomasa de cianobacterias: "))
-            absorbancia = float(input("Ingrese la densidad óptica (absorbancia): "))
-            break
-        except ValueError:
-            print("Error: Por favor, ingrese un número válido.")
+# Obtener el nombre del archivo cargado
+file_name = list(uploaded.keys())[0]
 
-    return dia, abundancia, biomasa, absorbancia
+# Cargar el archivo Excel en un DataFrame
+df = pd.read_excel(file_name)
 
-# Definimos la función para actualizar los datos y graficar
-def actualizar_datos(dia, abundancia, biomasa, absorbancia):
-    global lista_datos
-    lista_datos.append({'Día': dia, 'Abundancia': abundancia, 'Biomasa': biomasa, 'Absorbancia': absorbancia})
+# Convertir la columna 'FECHA' a tipo datetime
+df['FECHA'] = pd.to_datetime(df['FECHA'])
 
-    # Convertimos la lista de datos en un DataFrame
-    datos = pd.DataFrame(lista_datos)
+# Ordenar el DataFrame por la columna 'FECHA'
+df = df.sort_values(by='FECHA')
 
-    # Graficamos la curva de crecimiento de abundancia
-    plt.figure(figsize=(10, 6))
-    plt.subplot(2, 2, 1)
-    plt.plot(datos['Día'], datos['Abundancia'], marker='o', color='blue')
-    plt.xlabel('Día')
-    plt.ylabel('Abundancia de cianobacterias')
-    plt.title('Curva de Crecimiento de Abundancia')
+# Gráficos
+plt.figure(figsize=(12, 6))
 
-    # Graficamos la curva de crecimiento de biomasa
-    plt.subplot(2, 2, 2)
-    plt.plot(datos['Día'], datos['Biomasa'], marker='o', color='green')
-    plt.xlabel('Día')
-    plt.ylabel('Biomasa de cianobacterias')
-    plt.title('Curva de Crecimiento de Biomasa')
+# Gráfico de DO
+plt.subplot(3, 1, 1)
+plt.plot(df['FECHA'], df['DO'], marker='o', linestyle='-')
+plt.title('DO')
+plt.xlabel('Fecha')
+plt.ylabel('ABS')
 
-    # Graficamos la curva de absorbancia
-    plt.subplot(2, 2, 3)
-    plt.plot(datos['Día'], datos['Absorbancia'], marker='o', color='red')
-    plt.xlabel('Día')
-    plt.ylabel('Absorbancia')
-    plt.title('Curva de Absorbancia')
+# Gráfico de Abundancia
+plt.subplot(3, 1, 2)
+plt.plot(df['FECHA'], df['ABUNDANCIA'], marker='o', linestyle='-')
+plt.title('Abundancia')
+plt.xlabel('Fecha')
+plt.ylabel('CELS/ML')
 
-    plt.tight_layout()
-    plt.show()
+# Gráfico de Fosfato
+plt.subplot(3, 1, 3)
+plt.plot(df['FECHA'], df['FOSFATO'], marker='o', linestyle='-')
+plt.title('Fosfato')
+plt.xlabel('Fecha')
+plt.ylabel('PO4')
 
-# Simulamos el ingreso de datos durante un periodo de 30 días
-for dia in range(1, 31):
-    print(f"\n--- Día {dia} ---")
-    dia, abundancia, biomasa, absorbancia = ingresar_datos()
-    actualizar_datos(dia, abundancia, biomasa, absorbancia)
+# Ajustes de diseño
+plt.tight_layout()
+plt.show()
